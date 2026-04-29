@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image to Text Converter | Professional OCR & Document Extraction</title>
+    <meta name="description" content="Ultra-fast AI-powered Image to Text converter. Accurately extract text from images, PDFs, and scans using advanced machine learning OCR. Private, secure, and 100% free.">
+    <meta name="keywords" content="image to text, ocr converter, ai text extraction, document digitization, photo to word, image to text ai, extract text from image online">
+    
+    <!-- AI Crawler Optimization -->
+    <meta name="author" content="VibeExtract AI">
+    <meta property="og:title" content="AI Image to Text Converter | Professional OCR">
+    <meta property="og:description" content="High-accuracy text extraction from any image using state-of-the-art AI technology.">
+    <meta property="og:type" content="website">
+    
+    <!-- Structured Data for AI & Search Engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "AI Image to Text Converter",
+      "url": "https://imagetotextconverter.io",
+      "description": "High-accuracy AI OCR tool to extract text from images instantly.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": "AI-powered OCR, Support for 20+ languages, 100% Client-side Privacy, Instant Copy & History",
+      "author": {
+        "@type": "Organization",
+        "name": "VibeExtract"
+      }
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Tesseract.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container flex-header">
+            <div class="logo">
+                <span class="logo-icon">📄</span>
+                <span class="logo-text">ImageToText<span class="dot">.</span>io</span>
+            </div>
+            <nav class="nav">
+                <a href="#history" class="btn-outline" id="history-nav-btn">History</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Image to Text Converter</h1>
+                <p class="subtitle">Extract textual content from images accurately with our advanced OCR technology.</p>
+                
+                <div class="language-selection">
+                    <label for="language-select">Document Language:</label>
+                    <select id="language-select">
+                        <option value="auto" selected>Auto-Detect & Original</option>
+                        <option value="eng">English</option>
+                        <option value="spa">Spanish</option>
+                        <option value="fra">French</option>
+                        <option value="deu">German</option>
+                        <option value="chi_sim">Chinese (Simplified)</option>
+                        <option value="chi_tra">Chinese (Traditional)</option>
+                        <option value="jpn">Japanese</option>
+                        <option value="kor">Korean</option>
+                        <option value="rus">Russian</option>
+                        <option value="ara">Arabic</option>
+                        <option value="hin">Hindi</option>
+                        <option value="por">Portuguese</option>
+                        <option value="ita">Italian</option>
+                        <option value="nld">Dutch</option>
+                        <option value="tur">Turkish</option>
+                        <option value="vie">Vietnamese</option>
+                        <option value="pol">Polish</option>
+                        <option value="tha">Thai</option>
+                        <option value="ell">Greek</option>
+                        <option value="ind">Indonesian</option>
+                    </select>
+                </div>
+                
+                <div class="upload-container" id="drop-zone">
+                    <div class="upload-box">
+                        <div class="upload-icon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        </div>
+                        <h3>Drag & Drop your images here</h3>
+                        <p>or</p>
+                        <label for="file-upload" class="btn-primary">Browse Files</label>
+                        <input type="file" id="file-upload" accept="image/*" multiple hidden>
+                        <p class="format-hint">Supports: JPG, PNG, WEBP, BMP</p>
+                    </div>
+                </div>
+
+                <div id="processing-status" class="hidden">
+                    <div class="loader"></div>
+                    <p>Extracting text... <span id="progress-percent">0</span>%</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="history" class="history-section">
+            <div class="container">
+                <h2>Conversion History</h2>
+                <div id="history-list" class="history-grid">
+                    <p class="empty-msg">No recent conversions found.</p>
+                </div>
+                <div id="history-expand" class="hidden">
+                    <button id="show-more-btn" class="btn-secondary">Show More History</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq" class="faq-section">
+            <div class="container">
+                <h2>Frequently Asked Questions</h2>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <button class="accordion-header">How do I use the Image to Text converter? <span>+</span></button>
+                        <div class="accordion-body">
+                            <p>Simply drag and drop your image into the upload box or click "Browse Files". Select your target language from the dropdown, and our OCR engine will extract the text instantly.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <button class="accordion-header">Is this converter free to use? <span>+</span></button>
+                        <div class="accordion-body">
+                            <p>Yes, our tool is 100% free for all users. You can convert as many images as you want without any hidden costs.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <button class="accordion-header">Which languages are supported? <span>+</span></button>
+                        <div class="accordion-body">
+                            <p>We support over 20 global languages including English, Russian, Chinese, Korean, Japanese, Spanish, French, and many more. Ensure you select the correct language before uploading for best results.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <button class="accordion-header">Is my data safe? <span>+</span></button>
+                        <div class="accordion-body">
+                            <p>Absolutely. All processing happens directly in your browser using client-side OCR technology. Your images are never uploaded to our servers, ensuring total privacy.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <button class="accordion-header">Can I download the results? <span>+</span></button>
+                        <div class="accordion-body">
+                            <p>Yes, after the extraction is complete, a popup will appear where you can copy the text or download it as a .txt file instantly.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Result Popup Modal -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Extracted Text Result</h3>
+                <button id="close-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="result-area">
+                    <textarea id="result-text" readonly></textarea>
+                    <div class="action-buttons">
+                        <button class="btn-primary" id="copy-btn">Copy Text</button>
+                    </div>
+                </div>
+                
+                <div class="cta-section">
+                    <div class="cta-header">
+                        <h3><span class="sparkle-icon">✨</span> Fix & upgrade your results now</h3>
+                        <p>Improve quality and make it 100% professional.</p>
+                    </div>
+                    
+                    <div class="cta-grid">
+                        <!-- Dynamic CTAs injected here via script.js -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-minimal">
+                <p>&copy; 2026 VibeExtract. All rights reserved.</p>
+                <div class="footer-small-links">
+                    <a href="about.html">About Us</a>
+                    <a href="contact.html">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Affiliate Link Management</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .admin-table th, .admin-table td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        .admin-table th { background: #f8f9fa; font-weight: 700; color: #4b5563; }
+        .badge-status { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .status-fixed { background: #fee2e2; color: #dc2626; }
+        .status-dynamic { background: #dcfce7; color: #16a34a; }
+        .status-hidden { background: #f3f4f6; color: #6b7280; }
+        .status-default { background: #e0e7ff; color: #4338ca; }
+        .actions { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 35px; border-radius: 24px; width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto; }
+        .icon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 5px; }
+        .icon-opt { padding: 10px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; text-align: center; font-size: 1.2rem; }
+        .icon-opt.selected { border-color: var(--primary); background: #f5f3ff; }
+
+        /* Login Styles */
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f8f9fd; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .login-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); width: 400px; text-align: center; border: 1px solid #e2e8f0; }
+        .login-card h2 { margin-bottom: 30px; color: #1e1e2f; }
+        .login-form { text-align: left; }
+        .login-group { margin-bottom: 20px; }
+        .login-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #4b5563; }
+        .login-group input { width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; }
+        .login-group input:focus { outline: none; border-color: #735af2; box-shadow: 0 0 0 4px rgba(115, 90, 242, 0.1); }
+        .login-btn { width: 100%; padding: 14px; background: #735af2; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; }
+        .login-btn:hover { background: #5d44d8; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(115, 90, 242, 0.3); }
+        .login-error { color: #ef4444; font-size: 0.9rem; margin-top: 15px; display: none; }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <div class="logo" style="justify-content: center; margin-bottom: 20px;">
+                <span class="logo-icon">🔐</span>
+                <span class="logo-text">Admin Login</span>
+            </div>
+            <h2>Restricted Access</h2>
+            <form class="login-form" id="login-form" onsubmit="handleLogin(event)">
+                <div class="login-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Enter username" required>
+                </div>
+                <div class="login-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="login-btn">Secure Login</button>
+                <div id="login-error" class="login-error">Invalid credentials. Please try again.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Content -->
+    <div id="admin-container" style="display: none;">
+        <header>
+            <nav class="container">
+                <div class="logo">
+                    <span class="logo-icon">🛡️</span>
+                    <span class="logo-text">Affiliate Center</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="index.html">View Site</a></li>
+                    <li><button class="btn-primary" onclick="openModal()">+ Add New Link</button></li>
+                    <li><button class="btn-secondary" onclick="handleLogout()" style="padding: 8px 16px; font-size: 0.9rem;">Logout</button></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="container page-content">
+            <section>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h2>Affiliate Dashboard</h2>
+                        <p style="color: #6b7280;">Manage how CTAs appear in the results popup.</p>
+                    </div>
+                    <button class="btn-secondary btn-sm" onclick="seedData()">Reset to Defaults</button>
+                </div>
+                
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Preview</th>
+                            <th>Details</th>
+                            <th>Signals</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="links-body">
+                        <!-- Links populated by JS -->
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="link-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Edit Affiliate Link</h3>
+            <form id="link-form" onsubmit="saveLink(event)">
+                <input type="hidden" id="link-id">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>Display Status</label>
+                        <select id="status" required>
+                            <option value="fixed">Fixed (Always Show Top 2)</option>
+                            <option value="dynamic">Dynamic (Based on Score)</option>
+                            <option value="default">Default (Fallback only)</option>
+                            <option value="hidden">Hidden</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Priority Weight (1-10)</label>
+                        <input type="number" id="priority" min="1" max="10" value="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Title (CTA Heading)</label>
+                    <input type="text" id="title" required placeholder="e.g. Proofread My Document">
+                </div>
+                
+                <div class="form-group">
+                    <label>Description (Short & Punchy)</label>
+                    <input type="text" id="desc" required placeholder="e.g. Fix typos and format professionally.">
+                </div>
+
+                <div class="form-group">
+                    <label>Affiliate Link</label>
+                    <input type="url" id="url" required placeholder="https://www.fiverr.com/...">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>Price Badge</label>
+                        <input type="text" id="price" placeholder="e.g. From $5">
+                    </div>
+                    <div class="form-group">
+                        <label>Signal Keywords (Comma separated)</label>
+                        <input type="text" id="signals" placeholder="legal, code, medical">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Pick an Icon</label>
+                    <input type="hidden" id="icon-val" value="💎">
+                    <div class="icon-grid" id="icon-selector">
+                        <!-- Icons added by JS -->
+                    </div>
+                </div>
+
+                <div class="actions" style="margin-top: 30px; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'vibe_affiliate_links';
+        const AUTH_KEY = 'vibe_admin_auth';
+        const icons = [
+            '💎', '🚀', '🔥', '🎨', '✒️', '🖼️', '✍️', '🌐', '📖', '🗣️', 
+            '📊', '🧠', '💾', '🎬', '📣', '📈', '🎯', '💻', '🛠️', '🔒',
+            '💡', '⚙️', '🛡️', '📱', '🔔', '🏷️', '📦', '🗝️', '💰', '🏆'
+        ];
+
+        // Auth Logic
+        function checkAuth() {
+            if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('admin-container').style.display = 'block';
+                loadLinks();
+            } else {
+                document.getElementById('login-overlay').style.display = 'flex';
+                document.getElementById('admin-container').style.display = 'none';
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+
+            if (user === 'admin' && pass === 'Ab.123$%^?=Ok') {
+                sessionStorage.setItem(AUTH_KEY, 'true');
+                checkAuth();
+            } else {
+                errorDiv.style.display = 'block';
+                setTimeout(() => errorDiv.style.display = 'none', 3000);
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem(AUTH_KEY);
+            checkAuth();
+        }
+
+        function initIconSelector() {
+            const grid = document.getElementById('icon-selector');
+            grid.innerHTML = icons.map(icon => `
+                <div class="icon-opt" onclick="selectIcon(this, '${icon}')">${icon}</div>
+            `).join('');
+        }
+
+        function selectIcon(el, icon) {
+            document.querySelectorAll('.icon-opt').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('icon-val').value = icon;
+        }
+
+        function loadLinks() {
+            let links = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            
+            if (links.length === 0) {
+                seedData(true);
+                return;
+            }
+
+            const body = document.getElementById('links-body');
+            body.innerHTML = links.map(link => `
+                <tr>
+                    <td><span class="badge-status status-${link.status}">${link.status}</span></td>
+                    <td style="font-size: 1.5rem; text-align: center;">${link.icon || '💎'}</td>
+                    <td>
+                        <strong>${link.title}</strong><br>
+                        <small style="color: #6b7280;">${link.price || '$5'}</small>
+                    </td>
+                    <td><small>${link.signals || '-'}</small></td>
+                    <td class="actions">
+                        <button class="btn-secondary btn-sm" onclick="editLink(${link.id})">Edit</button>
+                        <button class="btn-secondary btn-sm" onclick="deleteLink(${link.id})" style="color: #ef4444; border-color: #fecaca;">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openModal() {
+            document.getElementById('link-form').reset();
+            document.getElementById('link-id').value = '';
+            document.getElementById('modal-title').innerText = 'Add Affiliate Link';
+            selectIcon(document.querySelector('.icon-opt'), '💎');
+            document.getElementById('link-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('link-modal').style.display = 'none';
+        }
+
+        function editLink(id) {
+            const links = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const link = links.find(l => l.id === id);
+            if (!link) return;
+
+            document.getElementById('link-id').value = link.id;
+            document.getElementById('title').value = link.title;
+            document.getElementById('desc').value = link.description;
+            document.getElementById('url').value = link.url;
+            document.getElementById('price').value = link.price || '';
+            document.getElementById('priority').value = link.priority || 1;
+            document.getElementById('signals').value = link.signals || '';
+            document.getElementById('status').value = link.status || 'dynamic';
+            
+            const iconOpts = document.querySelectorAll('.icon-opt');
+            iconOpts.forEach(opt => {
+                if (opt.innerText === link.icon) selectIcon(opt, link.icon);
+            });
+
+            document.getElementById('modal-title').innerText = 'Edit Affiliate Link';
+            document.getElementById('link-modal').style.display = 'flex';
+        }
+
+        function saveLink(e) {
+            e.preventDefault();
+            const id = document.getElementById('link-id').value;
+            const linkData = {
+                id: id ? parseInt(id) : Date.now(),
+                title: document.getElementById('title').value,
+                description: document.getElementById('desc').value,
+                url: document.getElementById('url').value,
+                price: document.getElementById('price').value,
+                priority: parseInt(document.getElementById('priority').value),
+                signals: document.getElementById('signals').value,
+                status: document.getElementById('status').value,
+                icon: document.getElementById('icon-val').value
+            };
+
+            let links = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            if (id) {
+                links = links.map(l => l.id === parseInt(id) ? linkData : l);
+            } else {
+                links.push(linkData);
+            }
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
+            closeModal();
+            loadLinks();
+        }
+
+        function deleteLink(id) {
+            if (confirm('Permanently delete this affiliate link?')) {
+                let links = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                links = links.filter(l => l.id !== id);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
+                loadLinks();
+            }
+        }
+
+        function seedData(silent = false) {
+            const defaults = [
+                { id: 1, status: 'fixed', priority: 1, title: 'Professional Logo Redesign', description: 'Transform your low-res logo into a high-quality vector file.', url: 'https://www.fiverr.com/categories/graphics-design/logo-design', price: 'From $15', signals: 'logo, brand, drawing, shape', icon: '🎨' },
+                { id: 2, status: 'fixed', priority: 2, title: 'Expert Photoshop Editing', description: 'Remove backgrounds or retouch images for perfect clarity.', url: 'https://www.fiverr.com/categories/graphics-design/image-editing', price: 'Fast Delivery', signals: 'edit, photoshop, retouch, blur', icon: '🪄' },
+                { id: 3, status: 'dynamic', priority: 1, title: 'Native Language Translation', description: 'Get your text translated by human experts in 50+ languages.', url: 'https://www.fiverr.com/categories/writing-translation/translation', price: 'Top Rated', signals: 'translate, language, global, foreign', icon: '🌐' },
+                { id: 4, status: 'dynamic', priority: 1, title: 'Proofreading & Editing', description: 'Fix grammar, syntax, and flow with professional editors.', url: 'https://www.fiverr.com/categories/writing-translation/proofreading-editing', price: 'From $5', signals: 'grammar, fix, flow, correction, spell', icon: '✍️' },
+                { id: 5, status: 'dynamic', priority: 2, title: 'Content Writing Services', description: 'Hire writers to turn your notes into engaging articles or blogs.', url: 'https://www.fiverr.com/categories/writing-translation/articles-blog-posts', price: 'High Quality', signals: 'blog, article, write, story', icon: '📝' },
+                { id: 6, status: 'dynamic', priority: 1, title: 'Manual Data Entry Pro', description: 'Need thousands of images converted? Outsource it to experts.', url: 'https://www.fiverr.com/categories/data/data-entry', price: 'Save Hours', signals: 'data, batch, volume, large, sheet', icon: '📊' },
+                { id: 7, status: 'dynamic', priority: 1, title: 'Data Scraping & Mining', description: 'Transform extracted lists into organized Excel/CSV databases.', url: 'https://www.fiverr.com/categories/data/data-scraping', price: 'Certified', signals: 'list, database, csv, excel, scraper', icon: '🧠' },
+                { id: 8, status: 'dynamic', priority: 2, title: 'Document Digitization', description: 'Convert handwritten scans into perfectly formatted Word docs.', url: 'https://www.fiverr.com/categories/data/data-processing', price: 'Starting $5', signals: 'handwrite, note, scan, paper', icon: '💾' },
+                { id: 9, status: 'dynamic', priority: 1, title: 'Video Captioning / Subs', description: 'Add professional subtitles to your videos using your text.', url: 'https://www.fiverr.com/categories/video-animation/subtitles-captions', price: 'Engagement+', signals: 'video, movie, sub, caption, speech', icon: '🎬' },
+                { id: 10, status: 'dynamic', priority: 1, title: 'Social Media Marketing', description: 'Promote your brand using your newly extracted content.', url: 'https://www.fiverr.com/categories/online-marketing/social-media-marketing', price: 'Grow Fast', signals: 'market, social, post, brand', icon: '📣' },
+                { id: 11, status: 'dynamic', priority: 2, title: 'SEO Optimization Pro', description: 'Rank higher on Google with optimized text and descriptions.', url: 'https://www.fiverr.com/categories/online-marketing/seo', price: 'Rank #1', signals: 'seo, rank, keyword, search', icon: '📈' },
+                { id: 12, status: 'dynamic', priority: 1, title: 'Custom OCR App Dev', description: 'Build your own private image-to-text tool for your company.', url: 'https://www.fiverr.com/categories/programming-tech/desktop-applications', price: 'Custom Dev', signals: 'build, develop, app, tool, software', icon: '💻' },
+                { id: 13, status: 'dynamic', priority: 1, title: 'WordPress Specialist', description: 'Upload your extracted content directly to your WP site.', url: 'https://www.fiverr.com/categories/programming-tech/wordpress', price: 'Web Help', signals: 'website, wordpres, blog, site', icon: '🛠️' },
+                { id: 14, status: 'dynamic', priority: 2, title: 'Cyber Security Review', description: 'Ensure your sensitive extracted documents remain secure.', url: 'https://www.fiverr.com/categories/programming-tech/cybersecurity', price: 'Safe & Secure', signals: 'secure, private, hack, safety', icon: '🔒' },
+                { id: 15, status: 'default', priority: 1, title: 'Deep Sentiment Analysis', description: 'Understand the tone and mood behind your extracted text.', url: 'https://www.fiverr.com', price: 'Starting $5', signals: 'feel, mood, tone, sentiment', icon: '📊' },
+                { id: 16, status: 'default', priority: 2, title: 'Book Formatting Pro', description: 'Turn your OCR text into a print-ready Amazon Kindle book.', url: 'https://www.fiverr.com', price: 'Best Seller', signals: 'book, kindle, print, author', icon: '📖' },
+                { id: 17, status: 'default', priority: 3, title: 'Voiceover Recording', description: 'Let a professional voice actor read your extracted script.', url: 'https://www.fiverr.com', price: 'Studio Quality', signals: 'script, read, voice, audio', icon: '🗣️' },
+                { id: 18, status: 'default', priority: 4, title: 'Business Plan Writing', description: 'Use your notes to create a winning startup business plan.', url: 'https://www.fiverr.com', price: 'Startup Ready', signals: 'business, plan, start, company', icon: '💼' },
+                { id: 19, status: 'default', priority: 5, title: 'Transcription Specialist', description: 'Convert audio files related to your text into clean transcripts.', url: 'https://www.fiverr.com', price: '99% Accurate', signals: 'audio, hear, talk, record', icon: '📡' },
+                { id: 20, status: 'default', priority: 6, title: 'Resume & CV Design', description: 'Update your professional profile using your extracted details.', url: 'https://www.fiverr.com', price: 'Get Hired', signals: 'job, resume, career, cv', icon: '👔' }
+            ];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
+            loadLinks();
+            if (!silent) alert('20 Professional Affiliate Links Seeded!');
+        }
+
+        // Initialize
+        initIconSelector();
+        checkAuth();
+    </script>
+</body>
+</html>
