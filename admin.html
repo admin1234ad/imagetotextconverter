@@ -177,9 +177,10 @@
         const STORAGE_KEY = 'vibe_affiliate_links';
         const AUTH_KEY = 'vibe_admin_auth';
         const icons = [
-            '💎', '🚀', '🔥', '🎨', '✒️', '🖼️', '✍️', '🌐', '📖', '🗣️', 
+            '💎', '🚀', '🔥', '🎨', '✨', '🖼️', '✍️', '🌐', '📖', '🗣️', 
             '📊', '🧠', '💾', '🎬', '📣', '📈', '🎯', '💻', '🛠️', '🔒',
-            '💡', '⚙️', '🛡️', '📱', '🔔', '🏷️', '📦', '🗝️', '💰', '🏆'
+            '💡', '⚙️', '🛡️', '📱', '🔔', '🏷️', '📦', '🗝️', '💰', '🏆',
+            '📸', '🪄', '✒️', '📝', '💼', '👔', '📁', '📡', '🔍', '🎁'
         ];
 
         // Auth Logic
@@ -279,10 +280,20 @@
             document.getElementById('signals').value = link.signals || '';
             document.getElementById('status').value = link.status || 'dynamic';
             
+            // Set icon
+            let iconFound = false;
             const iconOpts = document.querySelectorAll('.icon-opt');
             iconOpts.forEach(opt => {
-                if (opt.innerText === link.icon) selectIcon(opt, link.icon);
+                if (opt.innerText === link.icon) {
+                    selectIcon(opt, link.icon);
+                    iconFound = true;
+                }
             });
+            
+            // If icon not in list, set to default but keep data
+            if (!iconFound) {
+                document.getElementById('icon-val').value = link.icon || '💎';
+            }
 
             document.getElementById('modal-title').innerText = 'Edit Affiliate Link';
             document.getElementById('link-modal').style.display = 'flex';
@@ -327,7 +338,7 @@
         function seedData(silent = false) {
             const defaults = [
                 { id: 1, status: 'fixed', priority: 1, title: 'Professional Logo Redesign', description: 'Transform your low-res logo into a high-quality vector file.', url: 'https://www.fiverr.com/categories/graphics-design/logo-design', price: 'From $15', signals: 'logo, brand, drawing, shape', icon: '🎨' },
-                { id: 2, status: 'fixed', priority: 2, title: 'Expert Photoshop Editing', description: 'Remove backgrounds or retouch images for perfect clarity.', url: 'https://www.fiverr.com/categories/graphics-design/image-editing', price: 'Fast Delivery', signals: 'edit, photoshop, retouch, blur', icon: '🪄' },
+                { id: 2, status: 'fixed', priority: 2, title: 'Expert Photoshop Editing', description: 'Remove backgrounds or retouch images for perfect clarity.', url: 'https://www.fiverr.com/categories/graphics-design/image-editing', price: 'Fast Delivery', signals: 'edit, photoshop, retouch, blur', icon: '✨' },
                 { id: 3, status: 'dynamic', priority: 1, title: 'Native Language Translation', description: 'Get your text translated by human experts in 50+ languages.', url: 'https://www.fiverr.com/categories/writing-translation/translation', price: 'Top Rated', signals: 'translate, language, global, foreign', icon: '🌐' },
                 { id: 4, status: 'dynamic', priority: 1, title: 'Proofreading & Editing', description: 'Fix grammar, syntax, and flow with professional editors.', url: 'https://www.fiverr.com/categories/writing-translation/proofreading-editing', price: 'From $5', signals: 'grammar, fix, flow, correction, spell', icon: '✍️' },
                 { id: 5, status: 'dynamic', priority: 2, title: 'Content Writing Services', description: 'Hire writers to turn your notes into engaging articles or blogs.', url: 'https://www.fiverr.com/categories/writing-translation/articles-blog-posts', price: 'High Quality', signals: 'blog, article, write, story', icon: '📝' },
