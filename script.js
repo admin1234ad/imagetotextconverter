@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return tesseractWorker;
     }
 
-    async function preprocessImage(file) {
+    async function preprocessImage(file, isComplex = false) {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -105,7 +105,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxDim = 1800; // Optimal for OCR accuracy vs performance
+                    
+                    // Adaptive resolution: 2200px for standard, 3000px for complex
+                    const maxDim = isComplex ? 3000 : 2200; 
 
                     if (width > maxDim || height > maxDim) {
                         if (width > height) {
@@ -120,15 +122,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
+                    
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    
+                    // 1. Draw Image
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // Convert to blob for Tesseract
+                    // 2. Grayscale & Contrast Enhancement (Huge speed/accuracy boost for OCR)
+                    const imageData = ctx.getImageData(0, 0, width, height);
+                    const data = imageData.data;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                        // Boost contrast slightly
+                        const contrast = 1.1; 
+                        const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+                        const newValue = factor * (gray - 128) + 128;
+                        data[i] = data[i+1] = data[i+2] = newValue;
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+                    
+                    // 3. Output as High-Quality JPEG (95% is optimal for OCR vs PNG speed)
                     canvas.toBlob((blob) => {
                         resolve(blob || file);
-                    }, 'image/jpeg', 0.85);
+                    }, 'image/jpeg', 0.95);
                 };
+                img.onerror = () => resolve(file);
                 img.src = event.target.result;
             };
+            reader.onerror = () => resolve(file);
             reader.readAsDataURL(file);
         });
     }
@@ -142,15 +164,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (progressBarFill) progressBarFill.style.width = '0%';
 
         try {
-            // Step 1: Compress for mobile performance
-            const processedFile = await preprocessImage(file);
-            
-            if (statusLabel) statusLabel.textContent = 'Initializing AI...';
             let selectedLang = languageSelect.value;
             
-            // Optimized language set: Focus on top global languages to prevent mobile lag
+            // Check if we need complex processing (Hàn, Nhật, Trung, Hindi, Nga)
+            const complexLangs = ['kor', 'jpn', 'chi_sim', 'chi_tra', 'hin', 'rus', 'ara', 'auto'];
+            const isComplex = complexLangs.includes(selectedLang);
+
+            // Step 1: Smart Pre-processing
+            const processedFile = await preprocessImage(file, isComplex);
+            
+            if (statusLabel) statusLabel.textContent = 'Initializing AI...';
+            
+            // Restored original 100% comprehensive language set for maximum accuracy
             let ocrLang = (selectedLang === 'auto') 
-                ? 'eng+spa+chi_sim+vie+fra+deu' // Core set for fast auto-detection
+                ? 'eng+kor+hin+rus+chi_sim+chi_tra+jpn+ara+spa+fra+deu+por+ita+nld+tur+vie+pol+tha+ell+ind' 
                 : selectedLang;
 
             // Step 2: Get or Reuse worker

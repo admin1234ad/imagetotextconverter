@@ -8,18 +8,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
     <header class="header">
-        <nav class="container flex-header">
-            <div class="logo">
+            <a href="/" class="logo" style="text-decoration: none;">
                 <span class="logo-icon">📄</span>
-                <span class="logo-text">ImageToText<span class="dot">.</span>io</span>
-            </div>
+                <span class="logo-text">JpgToText<span class="dot">.</span>pro</span>
+            </a>
             <nav class="nav">
-                <a href="index.html" class="btn-outline">Home</a>
+                <a href="/" class="btn-outline">Home</a>
             </nav>
-        </nav>
     </header>
 
     <main class="container page-content">
@@ -37,8 +36,8 @@
                         <input type="text" name="_honey" style="display:none">
                         <!-- Disable Captcha for better UX (optional) -->
                         <input type="hidden" name="_captcha" value="false">
+                        <input type="hidden" name="_next" value="https://jpgtotext.pro/thanks">
                         <!-- Custom success page (optional) -->
-                        <input type="hidden" name="_next" value="https://imagetotextconverter.vercel.app/thanks.html">
 
                         <div class="form-group">
                             <label for="name">Full Name</label>
@@ -87,10 +86,10 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-minimal">
-                <p>&copy; 2026 VibeExtract. All rights reserved.</p>
+                <p>&copy; 2026 Jpgtotext.pro. All rights reserved.</p>
                 <div class="footer-small-links">
-                    <a href="about.html">About Us</a>
-                    <a href="contact.html">Contact Us</a>
+                    <a href="/about">About Us</a>
+                    <a href="/contact">Contact Us</a>
                 </div>
             </div>
         </div>
