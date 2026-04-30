@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('file-upload');
     const statusDiv = document.getElementById('processing-status');
     const progressPercent = document.getElementById('progress-percent');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const statusLabel = document.getElementById('status-label');
     const resultModal = document.getElementById('result-modal');
     const resultText = document.getElementById('result-text');
     const closeModal = document.getElementById('close-modal');
@@ -15,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let userIP = 'local-user';
     let fullHistory = [];
     let isHistoryExpanded = false;
+    let tesseractWorker = null;
+    let currentWorkerLangs = '';
 
     // 1. Fetch User IP for history tracking
     fetch('https://api.ipify.org?format=json')
@@ -27,6 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('IP fetch failed:', err);
             loadHistory(); 
         });
+
+    // Initialize worker early for speed
+    getWorker('eng').catch(err => console.error('Early worker init failed:', err));
 
     // 2. Drag and Drop events
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -65,30 +72,93 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 4. OCR Extraction Logic (1:1 Translation-free)
+    // 4. OCR Extraction Logic (Optimized for Speed & Mobile)
+    async function getWorker(langs) {
+        if (tesseractWorker && currentWorkerLangs === langs) {
+            return tesseractWorker;
+        }
+
+        if (tesseractWorker) {
+            await tesseractWorker.terminate();
+        }
+
+        tesseractWorker = await Tesseract.createWorker(langs, 1, {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    const progress = Math.floor(m.progress * 100);
+                    progressPercent.textContent = progress;
+                    if (progressBarFill) progressBarFill.style.width = `${progress}%`;
+                }
+            },
+            cacheMethod: 'readOnly'
+        });
+        currentWorkerLangs = langs;
+        return tesseractWorker;
+    }
+
+    async function preprocessImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1800; // Optimal for OCR accuracy vs performance
+
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height *= maxDim / width;
+                            width = maxDim;
+                        } else {
+                            width *= maxDim / height;
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Convert to blob for Tesseract
+                    canvas.toBlob((blob) => {
+                        resolve(blob || file);
+                    }, 'image/jpeg', 0.85);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     async function processImage(file) {
         statusDiv.classList.remove('hidden');
         dropZone.classList.add('hidden');
-        progressPercent.textContent = '0';
-
-        let selectedLang = languageSelect.value;
         
-        // Comprehensive language set for Auto-detection to ensure 1:1 original output
-        let ocrLang = (selectedLang === 'auto') 
-            ? 'eng+kor+hin+rus+chi_sim+chi_tra+jpn+ara+spa+fra+deu+por+ita+nld+tur+vie+pol+tha+ell+ind' 
-            : selectedLang;
+        if (statusLabel) statusLabel.textContent = 'Optimizing image...';
+        progressPercent.textContent = '0';
+        if (progressBarFill) progressBarFill.style.width = '0%';
 
         try {
-            const worker = await Tesseract.createWorker(ocrLang, 1, {
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        progressPercent.textContent = Math.floor(m.progress * 100);
-                    }
-                }
-            });
+            // Step 1: Compress for mobile performance
+            const processedFile = await preprocessImage(file);
+            
+            if (statusLabel) statusLabel.textContent = 'Initializing AI...';
+            let selectedLang = languageSelect.value;
+            
+            // Optimized language set: Focus on top global languages to prevent mobile lag
+            let ocrLang = (selectedLang === 'auto') 
+                ? 'eng+spa+chi_sim+vie+fra+deu' // Core set for fast auto-detection
+                : selectedLang;
 
-            const { data: { text } } = await worker.recognize(file);
-            await worker.terminate();
+            // Step 2: Get or Reuse worker
+            const worker = await getWorker(ocrLang);
+
+            if (statusLabel) statusLabel.textContent = 'Extracting text...';
+            // Step 3: Recognize
+            const { data: { text } } = await worker.recognize(processedFile);
 
             if (!text || text.trim() === '') {
                 throw new Error('No text detected. Please ensure the image is clear and contains text.');

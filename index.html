@@ -105,7 +105,13 @@
 
                 <div id="processing-status" class="hidden">
                     <div class="loader"></div>
-                    <p>Extracting text... <span id="progress-percent">0</span>%</p>
+                    <div class="status-content">
+                        <p id="status-label">Extracting text...</p>
+                        <div class="progress-bar-container">
+                            <div id="progress-bar-fill" style="width: 0%"></div>
+                        </div>
+                        <p class="progress-text"><span id="progress-percent">0</span>%</p>
+                    </div>
                 </div>
             </div>
         </section>
