@@ -3,4 +3,4 @@ Disallow: /admin.html
 Disallow: /config/
 Disallow: /private/
 
-Sitemap: https://imagetotextconverter.io/sitemap.xml
+Sitemap: https://jpgtotext.pro/sitemap.xml
