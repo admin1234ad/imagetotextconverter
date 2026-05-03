@@ -1,6 +1,24 @@
+# Optimized for AI Crawlers & Search Engines
 User-agent: *
+Allow: /
 Disallow: /admin.html
 Disallow: /config/
 Disallow: /private/
+
+# Explicitly Allow AI Crawlers to index content
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
 
 Sitemap: https://jpgtotext.pro/sitemap.xml
