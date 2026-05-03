@@ -214,15 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const STORAGE_KEY = 'vibe_affiliate_links';
         let links = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         
-        // Ensure we have links to work with (fallback to minimal set if empty)
+        // Ensure we have links to work with (fallback to shared defaults if empty)
         if (links.length === 0) {
-            links = [
-                { id: 1, status: 'fixed', priority: 1, title: 'Professional Logo Redesign', description: 'Transform your logo into a high-quality vector file.', url: 'https://www.fiverr.com', price: 'From $15', signals: 'logo, brand', icon: '🎨' },
-                { id: 2, status: 'fixed', priority: 2, title: 'Expert Photoshop Editing', description: 'Remove backgrounds or retouch images perfectly.', url: 'https://www.fiverr.com', price: 'Fast Delivery', signals: 'edit, photoshop', icon: '🪄' },
-                { id: 3, status: 'dynamic', priority: 1, title: 'Native Language Translation', description: 'Get human-expert translation in 50+ languages.', url: 'https://www.fiverr.com', price: 'Top Rated', signals: 'translate, language', icon: '🌐' },
-                { id: 4, status: 'dynamic', priority: 2, title: 'Proofreading & Editing', description: 'Fix grammar and syntax with professional editors.', url: 'https://www.fiverr.com', price: 'From $5', signals: 'grammar, fix', icon: '✍️' },
-                { id: 5, status: 'default', priority: 1, title: 'Deep Content Analysis', description: 'Understand the core meaning and sentiment of your text.', url: 'https://www.fiverr.com', price: 'Starting $5', signals: 'summary', icon: '📊' }
-            ];
+            links = window.DEFAULT_AFFILIATE_LINKS || [];
         }
 
         const lowerText = text.toLowerCase();
