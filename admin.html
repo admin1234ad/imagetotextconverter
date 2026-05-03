@@ -87,7 +87,10 @@
                         <h2>Affiliate Dashboard</h2>
                         <p style="color: #6b7280;">Manage how CTAs appear in the results popup.</p>
                     </div>
-                    <button class="btn-secondary btn-sm" onclick="seedData()">Reset to Defaults</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-primary btn-sm" onclick="exportGlobalConfig()" style="background: #10b981;">🚀 Copy Global Update Code</button>
+                        <button class="btn-secondary btn-sm" onclick="seedData()">Reset to Defaults</button>
+                    </div>
                 </div>
                 
                 <table class="admin-table">
@@ -341,6 +344,23 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
             loadLinks();
             if (!silent) alert('20 Professional Affiliate Links Seeded!');
+        }
+
+        function exportGlobalConfig() {
+            const links = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            if (links.length === 0) {
+                alert('No links to export. Please seed or add links first.');
+                return;
+            }
+
+            const code = `const DEFAULT_AFFILIATE_LINKS = ${JSON.stringify(links, null, 4)};\n\nif (typeof window !== 'undefined') {\n    window.DEFAULT_AFFILIATE_LINKS = DEFAULT_AFFILIATE_LINKS;\n}`;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ MÃ CẤU HÌNH ĐÃ ĐƯỢC COPY!\n\nBạn hãy gửi đoạn mã này cho tôi (AI Assistant) và yêu cầu: "Cập nhật link affiliate mới vào file affiliate-links.js".\n\nTôi sẽ cập nhật mã nguồn để tất cả mọi người đều thấy link mới của bạn.');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Error copying to clipboard. Check console.');
+            });
         }
 
         // Initialize
