@@ -969,3 +969,11 @@ textarea:focus {
 .intro-card strong {
     color: var(--primary);
 }
+
+/* SEO Features Cloud */
+.features-cloud-section { padding: 60px 0; background: #f8f9fd; }
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+.feature-item { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #eef2f6; transition: transform 0.3s ease; text-align: left; }
+.feature-item:hover { transform: translateY(-5px); }
+.feature-item h3 { color: #1e1e2f; margin-bottom: 15px; font-size: 1.25rem; font-weight: 700; }
+.feature-item p { color: #4b5563; line-height: 1.6; font-size: 0.95rem; }
